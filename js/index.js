@@ -7,7 +7,7 @@ const app = (() => {
     playing: false
   };
 
-  const tileSize = 10;
+  const tileSize = 8;
   const gameWidth = 100;
   const gameHeight = 100;
   const gameTick = 100; //ms
@@ -183,7 +183,7 @@ const app = (() => {
 
   drawGosperGun();
 
-/*  return {
+  /*return {
     getGameBoard,
     drawGosperGun
   };*/ //for debugging
