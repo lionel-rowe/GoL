@@ -1,6 +1,7 @@
 const app = (() => {
+  'use strict';
   const game = document.querySelector('#game');
-  ctx = game.getContext('2d');
+  const ctx = game.getContext('2d');
   const startButton = document.querySelector('#start-button');
 
   const state = {
@@ -19,19 +20,19 @@ const app = (() => {
   const newGameArray = createGameArray(); 
 
   function createGameArray() {
-    let gameArray = Array(gameHeight + offScreenSpaceTotal).fill(0).map(() => new Array(gameWidth + offScreenSpaceTotal).fill(0));
+    const createdArray = new Array(gameHeight + offScreenSpaceTotal).fill(0).map(() => new Array(gameWidth + offScreenSpaceTotal).fill(0));
 
     // Edges of the array are instadeath zones
 
-    gameArray[0] = gameArray[0].map(() => 8);
-    gameArray[gameArray.length - 1] = gameArray[0].map(() => 8);
+    createdArray[0] = createdArray[0].map(() => 8);
+    createdArray[createdArray.length - 1] = createdArray[0].map(() => 8);
 
-    gameArray.forEach(row => {
+    createdArray.forEach(row => {
       row[0] = 8;
       row[row.length - 1] = 8;
     });
 
-    return gameArray;
+    return createdArray;
 
   }
 
