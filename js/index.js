@@ -172,7 +172,14 @@ const app = (() => {
   function drawGosperGun() {
     
     fetch('../automata/gosper_gun.json')
-      .then(response => response.json())
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          startButton.removeAttribute('disabled');
+          throw new Error('Network response not OK.');
+        }
+      })
       .then(gosperGun => {
         drawDiff(gameArray, gosperGun);
         updateGameArray(gameArray, gosperGun);
