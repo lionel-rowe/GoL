@@ -1,23 +1,39 @@
 const app = (() => {
   'use strict';
+
+  /* SELECTED ELEMENTS */
+
   const game = document.querySelector('#game');
   const ctx = game.getContext('2d');
   const startButton = document.querySelector('#start-button');
+  const gameTickSlider = document.querySelector('#game-tick-slider');
+  const gameTickCounter = document.querySelector('#game-tick-counter');
+  const automatonSelector = document.querySelector('#automaton-selector');
+  const generationCounter = document.querySelector('#generation-counter');
 
   const state = {
-    playing: false
+    playing: false,
+    generation: 0
   };
+
+  /* OVERALL GAME SETUP */
 
   const tileSize = 8;
   const gameWidth = 100;
   const gameHeight = 100;
-  const gameTick = 100; //ms
-
-  const offScreenSpaceBefore = 50;
+  const offScreenSpaceBefore = 50; // prevent "hard edges" effect
   const offScreenSpaceTotal = offScreenSpaceBefore * 2;
 
+  const bgColor = '#222';
+  const aliveColor = '#3b3';
+
+  let gameInterval;
+  let activeSquare = null;
+
+  let gameTick = gameTickSlider.value * 1000;
+
   const gameArray = createGameArray();
-  const newGameArray = createGameArray(); 
+  const newGameArray = createGameArray();
 
   function createGameArray() {
     const createdArray = new Array(gameHeight + offScreenSpaceTotal).fill(0).map(() => new Array(gameWidth + offScreenSpaceTotal).fill(0));
@@ -36,11 +52,7 @@ const app = (() => {
 
   }
 
-  const bgColor = '#222';
-  const aliveColor = '#3b3';
-
-  let gameInterval;
-  let activeSquare = null;
+  /* EVENT LISTENERS FOR THE GAME CANVAS */
 
   game.addEventListener('mousedown', startMouseEvent);
   game.addEventListener('mousemove', startMouseEvent);
@@ -69,10 +81,48 @@ const app = (() => {
     }
   }
 
-  function toggleLife(coords, newAliveState) {
-    const newColor = newAliveState ? aliveColor : bgColor;
-    drawSquare(coords, newColor);
+  /* OTHER EVENT LISTENERS */
+
+  startButton.addEventListener('click', toggleGamePlay);
+  gameTickSlider.addEventListener('change', changeGameTick);
+  automatonSelector.addEventListener('change', drawBoard);
+
+  function toggleGamePlay(e) {
+    e.preventDefault();
+
+    if (!state.playing) {
+      startGame();
+    } else {
+      pauseGame();
+    }
   }
+
+  function changeGameTick() {
+    gameTick = gameTickSlider.value * 1000;
+    gameTickCounter.textContent = `${gameTickSlider.value}s`;
+    if (state.playing) {
+      clearInterval(gameInterval);
+      gameInterval = setInterval(gameStep, gameTick);
+    }
+  }
+
+  function drawBoard() {
+    pauseGame();
+
+    if (automatonSelector.value === 'random') {
+      drawRandom(35);
+    } else if (automatonSelector.value === 'clear') {
+      changeBoardStateTo(createGameArray());
+    } else {
+      drawAutomaton(automatonSelector.value);
+    }
+
+    state.generation = 0;
+    generationCounter.textContent = state.generation;
+
+  }
+
+  /* DRAWING STUFF ON THE BOARD */
 
   function drawSquare(coords, color) {
     ctx.fillStyle = bgColor;
@@ -82,23 +132,19 @@ const app = (() => {
     ctx.fillRect((coords[0] - offScreenSpaceBefore) * tileSize + 1, (coords[1] - offScreenSpaceBefore) * tileSize + 1, tileSize - 2, tileSize - 2);
   }
 
-  function clearScreen() {
+  function drawBg() {
     ctx.fillStyle = bgColor;
     ctx.fillRect(0, 0, game.width, game.height);
   }
 
-  function getNeighborScore(cellRef) {
-    let neighborScore = 0;
-    const neighbors = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
-
-    neighbors.forEach((neighbor) => {
-      neighborScore += gameArray[cellRef[0] + neighbor[0]][cellRef[1] + neighbor[1]];
-    });
-
-    return neighborScore;
+  function toggleLife(coords, newAliveState) {
+    const newColor = newAliveState ? aliveColor : bgColor;
+    drawSquare(coords, newColor);
   }
 
-  function updateGame() {
+  /* UPDATING THE OVERALL BOARD AND GAME ARRAY */
+
+  function gameStep() {
 
     gameArray.forEach((row, rowIdx) => {
       if (rowIdx === 0 || rowIdx === gameArray.length - 1) {
@@ -119,14 +165,30 @@ const app = (() => {
       });
     });
 
-    drawDiff(gameArray, newGameArray);
-    updateGameArray(gameArray, newGameArray);
+    changeBoardStateTo(newGameArray);
 
-    //TODO: see if possible to iterate only once over the array
+    state.generation++;
+    generationCounter.textContent = state.generation;
 
   }
 
-  function drawDiff(gameArray, newGameArray) {
+  function getNeighborScore(cellRef) {
+    let neighborScore = 0;
+    const neighbors = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
+
+    neighbors.forEach((neighbor) => {
+      neighborScore += gameArray[cellRef[0] + neighbor[0]][cellRef[1] + neighbor[1]];
+    });
+
+    return neighborScore;
+  }
+
+  function changeBoardStateTo(newGameArray) {
+    drawDiff(newGameArray);
+    updateGameArrayTo(newGameArray);
+  }
+
+  function drawDiff(newGameArray) {
 
     for (let rowIdx = offScreenSpaceBefore; rowIdx < gameHeight + offScreenSpaceBefore; rowIdx++) {
       for (let cellIdx = offScreenSpaceBefore; cellIdx < gameWidth + offScreenSpaceBefore; cellIdx++) {
@@ -137,63 +199,82 @@ const app = (() => {
     }
   }
 
-  function updateGameArray(gameArray, newGameArray) {
+  function updateGameArrayTo(newGameArray) {
     gameArray.forEach((row, rowIdx) => {
       row.forEach((cell, cellIdx) => {
-        gameArray[rowIdx][cellIdx] = newGameArray[rowIdx][cellIdx];
+        if (gameArray[rowIdx][cellIdx] !== newGameArray[rowIdx][cellIdx]) {
+          gameArray[rowIdx][cellIdx] = newGameArray[rowIdx][cellIdx];
+        }
       });
     });
   }
 
-  function init() {
-    clearScreen();
+  /* AUXILLIARY FUNCTIONS FOR EVENT LISTENERS */
+
+  function startGame() {
+    gameInterval = setInterval(gameStep, gameTick);
+    startButton.innerHTML = 'Pause';
+    state.playing = true;
   }
 
-  init();
-
-  function toggleGamePlay() {
-
-    state.playing = !state.playing;
-
-    if (state.playing) {
-      gameInterval = setInterval(updateGame, gameTick);
-      startButton.innerHTML = 'Pause';
-    } else {
-      clearInterval(gameInterval);
-      startButton.innerHTML = 'Start';
-    }
+  function pauseGame() {
+    clearInterval(gameInterval);
+    startButton.innerHTML = 'Start';
+    state.playing = false;
   }
 
-  startButton.onclick = toggleGamePlay;
+  function drawAutomaton(name) { //string name of automaton in ../automata dir (minus extension)
+    startButton.setAttribute('disabled', 'true');
+    automatonSelector.setAttribute('disabled', 'true');
 
-  function getGameBoard() {
+    fetch(`https://lionel-rowe.github.io/GoL/automata/${name}.json`)
+    // gh pages doesn't play nicely with relative URLs
+    // should be `../automata/${name}.json`
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        startButton.removeAttribute('disabled');
+        automatonSelector.removeAttribute('disabled');
+        automatonSelector.value = 'clear';
+        throw new Error('Network response not OK.');
+      }
+    })
+    .then(automaton => {
+      changeBoardStateTo(automaton);
+      startButton.removeAttribute('disabled');
+      automatonSelector.removeAttribute('disabled');
+    });
+  }
+
+  function drawRandom(percentDensity) {
+
+    const randomBoard = createGameArray();
+
+    randomBoard.forEach((row, rowIdx) => {
+      row.forEach((cell, cellIdx) => {
+        randomBoard[rowIdx][cellIdx] = Math.random() > (percentDensity / 100) ? 0 : 1;
+      });
+    });
+
+    changeBoardStateTo(randomBoard);
+  }
+
+
+  /* SET UP THE GAME TO START ON PAGE LOAD */
+
+  drawBg();
+  drawBoard();
+  startGame();
+
+/*  function getGameArray() {
     console.log(JSON.stringify(gameArray));
   }
 
-  function drawGosperGun() {
-    
-    fetch('https://lionel-rowe.github.io/GoL/automata/gosper_gun.json') //gh pages doesn't play well with relative URLs
-      .then(response => {
-        if (response.ok) {
-          return response.json();
-        } else {
-          startButton.removeAttribute('disabled');
-          throw new Error('Network response not OK.');
-        }
-      })
-      .then(gosperGun => {
-        drawDiff(gameArray, gosperGun);
-        updateGameArray(gameArray, gosperGun);
-        startButton.removeAttribute('disabled');
-      });
+  return {
+    getGameArray,
+  };*/
 
-  }
-
-  drawGosperGun();
-
-  /*return {
-    getGameBoard,
-    drawGosperGun
-  };*/ //for debugging
+  //^ for debugging etc.
 
 })();

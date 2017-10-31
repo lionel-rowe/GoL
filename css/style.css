@@ -1,9 +1,27 @@
-body {
+h1 {
   font-family: Georgia, serif;
+}
+
+body {
+  font-family: Calibri, sans-serif;
+}
+
+header {
+  width: 800px;
+  padding: 0 0 10px 0;
+}
+
+#generation-counter-outer {
+  float: right;
 }
 
 #game {
   width: 800px;
   height: 800px;
+}
 
+#game-tick-counter {
+  display: inline-block;
+  width: 2.5em;
+  text-align: center;
 }
