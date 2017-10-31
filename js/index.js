@@ -172,7 +172,7 @@ const app = (() => {
 
   function drawGosperGun() {
     
-    fetch('../automata/gosper_gun.json')
+    fetch('https://lionel-rowe.github.io/GoL/automata/gosper_gun.json') //gh pages doesn't play well with relative URLs
       .then(response => {
         if (response.ok) {
           return response.json();
