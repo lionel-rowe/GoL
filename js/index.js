@@ -223,13 +223,15 @@ const app = (() => {
     state.playing = false;
   }
 
-  function drawAutomaton(name) { //string name of automaton in ../automata dir (minus extension)
+  function drawAutomaton(name) { //string name of automaton in ../automata dir (excluding extension)
     startButton.setAttribute('disabled', 'true');
     automatonSelector.setAttribute('disabled', 'true');
 
-    fetch(`https://lionel-rowe.github.io/GoL/automata/${name}.json`)
-    // gh pages doesn't play nicely with relative URLs
-    // should be `../automata/${name}.json`
+    const url = window.location.origin === 'https://lionel-rowe.github.io'
+    ? `https://lionel-rowe.github.io/GoL/automata/${name}.json`
+    : `../automata/${name}.json`; // gh pages doesn't play nicely with relative URLs
+
+    fetch(url)
     .then(response => {
       if (response.ok) {
         return response.json();
@@ -240,7 +242,13 @@ const app = (() => {
         throw new Error('Network response not OK.');
       }
     })
-    .then(automaton => {
+    .then(json => {
+      const automaton = createGameArray();
+
+      json.aliveCells.forEach((cell) => {
+        automaton[cell[1]][cell[0]] = 1;
+      });
+
       changeBoardStateTo(automaton);
       startButton.removeAttribute('disabled');
       automatonSelector.removeAttribute('disabled');
@@ -260,6 +268,22 @@ const app = (() => {
     changeBoardStateTo(randomBoard);
   }
 
+  /* UTILITY TO GET AUTOMATA JSON FROM BOARD STATE */
+
+  function getBoardStateObj(xFrom, yFrom, xTo, yTo) { // exclude anything outside that area
+
+    const boardStateObj = {aliveCells: []};
+
+    for (let y = yFrom; y < yTo; y++) {
+      for (let x = xFrom; x < xTo; x++) {
+        if (gameArray[y][x] === 1) {
+          boardStateObj.aliveCells.push([x, y]);
+        }
+      }
+    }
+
+    return boardStateObj;
+  }
 
   /* SET UP THE GAME TO START ON PAGE LOAD */
 
@@ -267,14 +291,10 @@ const app = (() => {
   drawBoard();
   startGame();
 
-/*  function getGameArray() {
-    console.log(JSON.stringify(gameArray));
-  }
-
   return {
-    getGameArray,
-  };*/
+    getBoardStateObj
+  };
 
-  //^ for debugging etc.
+  //^ for creating new automata
 
 })();

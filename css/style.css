@@ -7,21 +7,49 @@ body {
 }
 
 header {
-  width: 800px;
   padding: 0 0 10px 0;
 }
 
+#controls {
+  max-width: 800px;
+  display: flex;
+}
+
+#controls * {
+  display: inline-block;
+  height: 100%;
+  vertical-align: top;
+}
+
+#automaton-selector {
+  vertical-align: baseline;
+}
+
+#game-tick-outer {
+  width: 200px;
+  text-align: center;
+}
+
+#game-tick-counter {
+  width: 2.5em;
+  text-align: center;
+  vertical-align: middle;
+}
+
+#start-button {
+  width: 5em;
+}
+
 #generation-counter-outer {
-  float: right;
+  flex: auto;
+  text-align: right;
+}
+
+#generation-counter {
+  vertical-align: top;
 }
 
 #game {
   width: 800px;
   height: 800px;
-}
-
-#game-tick-counter {
-  display: inline-block;
-  width: 2.5em;
-  text-align: center;
 }
