@@ -8,7 +8,7 @@ const app = (() => {
   const startButton = document.querySelector('#start-button');
   const gameTickSlider = document.querySelector('#game-tick-slider');
   const gameTickCounter = document.querySelector('#game-tick-counter');
-  const automatonSelector = document.querySelector('#automaton-selector');
+  const patternSelector = document.querySelector('#pattern-selector');
   const generationCounter = document.querySelector('#generation-counter');
 
   const state = {
@@ -85,7 +85,7 @@ const app = (() => {
 
   startButton.addEventListener('click', toggleGamePlay);
   gameTickSlider.addEventListener('change', changeGameTick);
-  automatonSelector.addEventListener('change', drawBoard);
+  patternSelector.addEventListener('change', drawBoard);
 
   function toggleGamePlay(e) {
     e.preventDefault();
@@ -109,12 +109,12 @@ const app = (() => {
   function drawBoard() {
     pauseGame();
 
-    if (automatonSelector.value === 'random') {
+    if (patternSelector.value === 'random') {
       drawRandom(35);
-    } else if (automatonSelector.value === 'clear') {
+    } else if (patternSelector.value === 'clear') {
       changeBoardStateTo(createGameArray());
     } else {
-      drawAutomaton(automatonSelector.value);
+      drawPattern(patternSelector.value);
     }
 
     state.generation = 0;
@@ -223,13 +223,13 @@ const app = (() => {
     state.playing = false;
   }
 
-  function drawAutomaton(name) { //string name of automaton in ../automata dir (excluding extension)
+  function drawPattern(name) { //string name of pattern in ../patterns dir (excluding extension)
     startButton.setAttribute('disabled', 'true');
-    automatonSelector.setAttribute('disabled', 'true');
+    patternSelector.setAttribute('disabled', 'true');
 
     const url = window.location.origin === 'https://lionel-rowe.github.io'
-    ? `https://lionel-rowe.github.io/GoL/automata/${name}.json`
-    : `../automata/${name}.json`; // gh pages doesn't play nicely with relative URLs
+    ? `https://lionel-rowe.github.io/GoL/patterns/${name}.json`
+    : `../patterns/${name}.json`; // gh pages doesn't play nicely with relative URLs
 
     fetch(url)
     .then(response => {
@@ -237,21 +237,21 @@ const app = (() => {
         return response.json();
       } else {
         startButton.removeAttribute('disabled');
-        automatonSelector.removeAttribute('disabled');
-        automatonSelector.value = 'clear';
+        patternSelector.removeAttribute('disabled');
+        patternSelector.value = 'clear';
         throw new Error('Network response not OK.');
       }
     })
     .then(json => {
-      const automaton = createGameArray();
+      const pattern = createGameArray();
 
       json.aliveCells.forEach((cell) => {
-        automaton[cell[1]][cell[0]] = 1;
+        pattern[cell[1]][cell[0]] = 1;
       });
 
-      changeBoardStateTo(automaton);
+      changeBoardStateTo(pattern);
       startButton.removeAttribute('disabled');
-      automatonSelector.removeAttribute('disabled');
+      patternSelector.removeAttribute('disabled');
     });
   }
 
@@ -268,7 +268,7 @@ const app = (() => {
     changeBoardStateTo(randomBoard);
   }
 
-  /* UTILITY TO GET AUTOMATA JSON FROM BOARD STATE */
+  /* UTILITY TO GET PATTERN JSON FROM BOARD STATE */
 
   function getBoardStateObj(xFrom, yFrom, xTo, yTo) { // exclude anything outside that area
 
@@ -295,6 +295,6 @@ const app = (() => {
     getBoardStateObj
   };
 
-  //^ for creating new automata
+  //^ for creating new patterns
 
 })();
