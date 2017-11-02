@@ -157,6 +157,7 @@ const app = (() => {
 
   function gameStep() {
 
+    clearTimeout(gameTimeout);
     gameTimeout = setTimeout(() => {
 
       requestAnimationFrame(gameStep);
