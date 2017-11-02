@@ -11,32 +11,39 @@ const app = (() => {
   const patternSelector = document.querySelector('#pattern-selector');
   const generationCounter = document.querySelector('#generation-counter');
 
+  /* OVERALL GAME SETUP */
+
   const state = {
     playing: false,
     generation: 0
   };
 
-  /* OVERALL GAME SETUP */
-
   const tileSize = 8;
-  const gameWidth = 100;
-  const gameHeight = 100;
+  const gameWidth = 100; // tiles
+  const gameHeight = 100; // tiles
+
+  game.width = Math.floor(gameWidth * tileSize);
+  game.height = Math.floor(gameHeight * tileSize);
+  
   const offScreenSpaceBefore = 50; // prevent "hard edges" effect
   const offScreenSpaceTotal = offScreenSpaceBefore * 2;
+
+  const gameWidthTotal = gameWidth + offScreenSpaceTotal;
+  const gameHeightTotal = gameHeight + offScreenSpaceTotal;
 
   const bgColor = '#222';
   const aliveColor = '#3b3';
 
-  let gameInterval;
+  let gameTimeout;
   let activeSquare = null;
 
-  let gameTick = gameTickSlider.value * 1000;
+  let gameTick = 1000 / gameTickSlider.value;
 
   const gameArray = createGameArray();
   const newGameArray = createGameArray();
 
   function createGameArray() {
-    const createdArray = new Array(gameHeight + offScreenSpaceTotal).fill(0).map(() => new Array(gameWidth + offScreenSpaceTotal).fill(0));
+    const createdArray = new Array(gameHeightTotal).fill(0).map(() => new Array(gameWidthTotal).fill(0));
 
     // Edges of the array are instadeath zones
 
@@ -61,9 +68,13 @@ const app = (() => {
   function startMouseEvent(e) {
     if ((e.type === 'mousedown' && e.button === 0) || (e.type === 'mousemove' && e.buttons === 1)) {
 
+      const gameRect = game.getBoundingClientRect();
+      const gameScaleX = gameRect.width / game.width;
+      const gameScaleY = gameRect.height / game.height;
+
       const coords =
-      [Math.floor((e.clientX - game.getBoundingClientRect().left) / tileSize + offScreenSpaceBefore),
-      Math.floor((e.clientY - game.getBoundingClientRect().top) / tileSize + offScreenSpaceBefore)];
+      [Math.floor((e.clientX - gameRect.left) / tileSize / gameScaleX + offScreenSpaceBefore),
+      Math.floor((e.clientY - gameRect.top) / tileSize / gameScaleY + offScreenSpaceBefore)];
 
       if (activeSquare === null || (coords[0] !== activeSquare[0] || coords[1] !== activeSquare[1])) {
         activeSquare = coords;
@@ -84,8 +95,8 @@ const app = (() => {
   /* OTHER EVENT LISTENERS */
 
   startButton.addEventListener('click', toggleGamePlay);
-  gameTickSlider.addEventListener('change', changeGameTick);
-  patternSelector.addEventListener('change', drawBoard);
+  gameTickSlider.addEventListener('input', changeGameTick);
+  patternSelector.addEventListener('input', drawBoard);
 
   function toggleGamePlay(e) {
     e.preventDefault();
@@ -98,11 +109,11 @@ const app = (() => {
   }
 
   function changeGameTick() {
-    gameTick = gameTickSlider.value * 1000;
-    gameTickCounter.textContent = `${gameTickSlider.value}s`;
+    gameTick = 1000 / gameTickSlider.value;
+    gameTickCounter.textContent = `${gameTickSlider.value}`;
     if (state.playing) {
-      clearInterval(gameInterval);
-      gameInterval = setInterval(gameStep, gameTick);
+      clearTimeout(gameTimeout);
+      gameStep();
     }
   }
 
@@ -110,7 +121,7 @@ const app = (() => {
     pauseGame();
 
     if (patternSelector.value === 'random') {
-      drawRandom(35);
+      drawRandom(37.5);
     } else if (patternSelector.value === 'clear') {
       changeBoardStateTo(createGameArray());
     } else {
@@ -146,29 +157,35 @@ const app = (() => {
 
   function gameStep() {
 
-    gameArray.forEach((row, rowIdx) => {
-      if (rowIdx === 0 || rowIdx === gameArray.length - 1) {
-        return;
-      }
-      row.forEach((cell, cellIdx) => {
-        if (cellIdx === 0 || cellIdx === row.length - 1) {
+    gameTimeout = setTimeout(() => {
+
+      requestAnimationFrame(gameStep);
+
+      gameArray.forEach((row, rowIdx) => {
+        if (rowIdx === 0 || rowIdx === gameArray.length - 1) {
           return;
         }
-        const neighborScore = getNeighborScore([rowIdx, cellIdx]);
-        if (neighborScore < 2 || neighborScore > 3) {
-          newGameArray[rowIdx][cellIdx] = 0;
-        } else if (neighborScore === 3) {
-          newGameArray[rowIdx][cellIdx] = 1;
-        } else {
-          newGameArray[rowIdx][cellIdx] = gameArray[rowIdx][cellIdx];
-        }
+        row.forEach((cell, cellIdx) => {
+          if (cellIdx === 0 || cellIdx === row.length - 1) {
+            return;
+          }
+          const neighborScore = getNeighborScore([rowIdx, cellIdx]);
+          if (neighborScore < 2 || neighborScore > 3) {
+            newGameArray[rowIdx][cellIdx] = 0;
+          } else if (neighborScore === 3) {
+            newGameArray[rowIdx][cellIdx] = 1;
+          } else {
+            newGameArray[rowIdx][cellIdx] = gameArray[rowIdx][cellIdx];
+          }
+        });
       });
-    });
 
-    changeBoardStateTo(newGameArray);
+      changeBoardStateTo(newGameArray);
 
-    state.generation++;
-    generationCounter.textContent = state.generation;
+      state.generation++;
+      generationCounter.textContent = state.generation;
+
+    }, gameTick);
 
   }
 
@@ -212,13 +229,13 @@ const app = (() => {
   /* AUXILLIARY FUNCTIONS FOR EVENT LISTENERS */
 
   function startGame() {
-    gameInterval = setInterval(gameStep, gameTick);
+    gameStep();
     startButton.innerHTML = 'Pause';
     state.playing = true;
   }
 
   function pauseGame() {
-    clearInterval(gameInterval);
+    clearTimeout(gameTimeout);
     startButton.innerHTML = 'Start';
     state.playing = false;
   }
@@ -246,7 +263,7 @@ const app = (() => {
       const pattern = createGameArray();
 
       json.aliveCells.forEach((cell) => {
-        pattern[cell[1]][cell[0]] = 1;
+        pattern[cell[1] + json.offset[1]][cell[0] + json.offset[0]] = 1;
       });
 
       changeBoardStateTo(pattern);
@@ -270,17 +287,23 @@ const app = (() => {
 
   /* UTILITY TO GET PATTERN JSON FROM BOARD STATE */
 
-  function getBoardStateObj(xFrom, yFrom, xTo, yTo) { // exclude anything outside that area
+  function getBoardStateObj() { // exclude anything outside that area
+    const boardStateObj = {};
+    const aliveCells = [];
 
-    const boardStateObj = {aliveCells: []};
-
-    for (let y = yFrom; y < yTo; y++) {
-      for (let x = xFrom; x < xTo; x++) {
+    for (let y = 1; y < gameHeightTotal; y++) {
+      for (let x = 1; x < gameWidthTotal; x++) {
         if (gameArray[y][x] === 1) {
-          boardStateObj.aliveCells.push([x, y]);
+          aliveCells.push([x, y]);
         }
       }
     }
+
+    const left = aliveCells.map(el => el[0]).reduce((acc, cur) => Math.min(acc, cur));
+    const top = aliveCells.map(el => el[1]).reduce((acc, cur) => Math.min(acc, cur));
+
+    boardStateObj.aliveCells = aliveCells.map(el => [el[0] - left, el[1] - top]);
+    boardStateObj.offset = [left, top];
 
     return boardStateObj;
   }

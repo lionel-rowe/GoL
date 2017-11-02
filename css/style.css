@@ -4,15 +4,19 @@ h1 {
 
 body {
   font-family: Calibri, sans-serif;
+  margin: 10px;
 }
 
 header {
   padding: 0 0 10px 0;
+  width: 100%;
 }
 
 #controls {
-  max-width: 800px;
+  width: 100%;
   display: flex;
+  flex-wrap: wrap;
+  max-width: 800px;
 }
 
 #controls * {
@@ -30,9 +34,9 @@ header {
   text-align: center;
 }
 
-#game-tick-counter {
-  width: 2.5em;
-  text-align: center;
+#game-tick-counter-outer {
+  width: 3em;
+  text-align: right;
   vertical-align: middle;
 }
 
@@ -51,5 +55,20 @@ header {
 
 #game {
   width: 800px;
-  height: 800px;
+}
+
+@media screen and (max-width: 830px) {
+  #game {
+    margin: 0 -10px;
+  }
+
+  body {
+    width: 800px;
+  }
+
+  header {
+    position: sticky;
+    width: calc(100vw - 35px);
+    left: 10px;
+  }
 }
