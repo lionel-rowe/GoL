@@ -5,23 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Game of Life Simulation</title>  
     <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="favicon.png">
   </head>
   <body>
     <header>
       <h1>Conway’s Game of Life</h1>
       <form id="controls">
-        <select id="pattern-selector">
-          <option value="random">Randomize</option>
+        <select id="pattern-selector" size="0">
+          <option value="clear">Clear</option>
+          <option value="random" selected>Randomize</option>
+          <option value="lightweight_spaceship">Lightweight spaceship</option>
           <option value="gosper_gun">Gosper Glider Gun</option>
           <option value="pentadecathlon">Pentadecathlon</option>
           <option value="pulsar">Pulsar</option>
           <option value="tumbler">Tumbler</option>
           <option value="twin_bees">Twin bees shuttle</option>
           <option value="copperhead">Copperhead</option>
-          <option value="clear">Clear</option>
-
+          <option value="upload">Upload RLE file...</option>
         </select>
-        <label id="game-tick-outer"><input type="range" min="1" max="20" step="1" id="game-tick-slider" value="10"> <span id="game-tick-counter-outer"><span id="game-tick-counter">10</span> GPS<span id="game-tick-counter-outer"></label>
+        <label id="game-tick-outer"><input type="range" min="1" max="20" step="1" id="game-tick-slider" value="10"> <span id="game-tick-counter-outer"><span id="game-tick-counter">10</span> GPS</span></label>
         <button id="start-button">Start</button>
         <span id="generation-counter-outer">Generations: <span id="generation-counter">0</span>&#x200b;</span>
         <!-- `&#x200b;` is zero-width space (prevents clicks on canvas from highlighting gen counter in Chrome) -->

@@ -19,25 +19,31 @@ header {
   max-width: 800px;
 }
 
-#controls * {
+#controls > * {
   display: inline-block;
   height: 100%;
-  vertical-align: top;
 }
 
 #pattern-selector {
-  vertical-align: baseline;
+  width: 180px;
+  text-overflow: '';
+}
+
+#game-tick-slider {
+  width: 120px;
 }
 
 #game-tick-outer {
-  width: 200px;
+  width: 210px;
   text-align: center;
 }
 
 #game-tick-counter-outer {
   width: 3em;
   text-align: right;
-  vertical-align: middle;
+  margin: 0 5px;
+  display: inline-block;
+  vertical-align: top;
 }
 
 #start-button {
@@ -54,7 +60,8 @@ header {
 }
 
 #game {
-  width: 800px;
+  width: 801px;
+  height: 801px;
 }
 
 @media screen and (max-width: 830px) {

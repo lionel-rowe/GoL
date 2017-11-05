@@ -5,6 +5,9 @@ const app = (() => {
 
   const game = document.querySelector('#game');
   const ctx = game.getContext('2d');
+
+  //ctx.scale(1.5,1.5);
+
   const startButton = document.querySelector('#start-button');
   const gameTickSlider = document.querySelector('#game-tick-slider');
   const gameTickCounter = document.querySelector('#game-tick-counter');
@@ -18,12 +21,15 @@ const app = (() => {
     generation: 0
   };
 
-  const tileSize = 8;
+  const tileSize = 7;
+  const borderWidth = 1;
+  const tilePlusBorder = tileSize + borderWidth;
+  const tilePlusDoubleBorder = tileSize + borderWidth * 2;
   const gameWidth = 100; // tiles
   const gameHeight = 100; // tiles
 
-  game.width = Math.floor(gameWidth * tileSize);
-  game.height = Math.floor(gameHeight * tileSize);
+  game.width = Math.floor(gameWidth * tilePlusBorder + borderWidth);
+  game.height = Math.floor(gameHeight * tilePlusBorder + borderWidth);
   
   const offScreenSpaceBefore = 50; // prevent "hard edges" effect
   const offScreenSpaceTotal = offScreenSpaceBefore * 2;
@@ -31,10 +37,12 @@ const app = (() => {
   const gameWidthTotal = gameWidth + offScreenSpaceTotal;
   const gameHeightTotal = gameHeight + offScreenSpaceTotal;
 
-  const bgColor = '#222';
+  const deadColor = '#222';
   const aliveColor = '#3b3';
+  const borderColor = '#333'; //TODO: fix use of this 
 
   let gameTimeout;
+  let animRequest;
   let activeSquare = null;
 
   let gameTick = 1000 / gameTickSlider.value;
@@ -73,8 +81,8 @@ const app = (() => {
       const gameScaleY = gameRect.height / game.height;
 
       const coords =
-      [Math.floor((e.clientX - gameRect.left) / tileSize / gameScaleX + offScreenSpaceBefore),
-      Math.floor((e.clientY - gameRect.top) / tileSize / gameScaleY + offScreenSpaceBefore)];
+      [Math.floor((e.clientX - gameRect.left) / tilePlusBorder / gameScaleX + offScreenSpaceBefore),
+      Math.floor((e.clientY - gameRect.top) / tilePlusBorder / gameScaleY + offScreenSpaceBefore)];
 
       if (activeSquare === null || (coords[0] !== activeSquare[0] || coords[1] !== activeSquare[1])) {
         activeSquare = coords;
@@ -111,45 +119,59 @@ const app = (() => {
   function changeGameTick() {
     gameTick = 1000 / gameTickSlider.value;
     gameTickCounter.textContent = `${gameTickSlider.value}`;
-    if (state.playing) {
-      clearTimeout(gameTimeout);
-      gameStep();
-    }
   }
 
   function drawBoard() {
     pauseGame();
 
-    if (patternSelector.value === 'random') {
-      drawRandom(37.5);
-    } else if (patternSelector.value === 'clear') {
+    const selected = patternSelector.value;
+
+    if (selected === 'clear') {
       changeBoardStateTo(createGameArray());
+    } else if (selected === 'random') {
+      drawRandom(37.5);
+      startGame();
+    } else if (selected === 'upload') {
+      const fileUpload = document.createElement('input');
+      fileUpload.setAttribute('type', 'file');
+      fileUpload.setAttribute('accept', '.rle');
+      fileUpload.addEventListener('change', () => {
+        const fileReader = new FileReader;
+        fileReader.readAsText(fileUpload.files[0], 'UTF-8');
+        fileReader.addEventListener('load', e => parseRle(e.target.result));
+      });
+
+      fileUpload.click();
     } else {
-      drawPattern(patternSelector.value);
+      drawPattern(selected);
     }
 
     state.generation = 0;
     generationCounter.textContent = state.generation;
-
   }
 
   /* DRAWING STUFF ON THE BOARD */
 
   function drawSquare(coords, color) {
-    ctx.fillStyle = bgColor;
-    ctx.fillRect((coords[0] - offScreenSpaceBefore) * tileSize, (coords[1] - offScreenSpaceBefore) * tileSize, tileSize, tileSize);
+    ctx.fillStyle = borderColor;
+    ctx.fillRect((coords[0] - offScreenSpaceBefore) * tilePlusBorder, (coords[1] - offScreenSpaceBefore) * tilePlusBorder, tilePlusDoubleBorder, tilePlusDoubleBorder);
 
     ctx.fillStyle = color;
-    ctx.fillRect((coords[0] - offScreenSpaceBefore) * tileSize + 1, (coords[1] - offScreenSpaceBefore) * tileSize + 1, tileSize - 2, tileSize - 2);
+    ctx.fillRect((coords[0] - offScreenSpaceBefore) * tilePlusBorder + borderWidth, (coords[1] - offScreenSpaceBefore) * tilePlusBorder + borderWidth, tileSize, tileSize);
   }
 
   function drawBg() {
-    ctx.fillStyle = bgColor;
-    ctx.fillRect(0, 0, game.width, game.height);
+
+    for (let rowIdx = offScreenSpaceBefore; rowIdx < gameHeight + offScreenSpaceBefore; rowIdx++) {
+      for (let cellIdx = offScreenSpaceBefore; cellIdx < gameWidth + offScreenSpaceBefore; cellIdx++) {
+        drawSquare([cellIdx, rowIdx], deadColor);
+      }
+    }
+
   }
 
   function toggleLife(coords, newAliveState) {
-    const newColor = newAliveState ? aliveColor : bgColor;
+    const newColor = newAliveState ? aliveColor : deadColor;
     drawSquare(coords, newColor);
   }
 
@@ -158,9 +180,10 @@ const app = (() => {
   function gameStep() {
 
     clearTimeout(gameTimeout);
+
     gameTimeout = setTimeout(() => {
 
-      requestAnimationFrame(gameStep);
+      animRequest = requestAnimationFrame(gameStep);
 
       gameArray.forEach((row, rowIdx) => {
         if (rowIdx === 0 || rowIdx === gameArray.length - 1) {
@@ -237,41 +260,96 @@ const app = (() => {
 
   function pauseGame() {
     clearTimeout(gameTimeout);
+    cancelAnimationFrame(animRequest);
     startButton.innerHTML = 'Start';
     state.playing = false;
   }
 
-  function drawPattern(name) { //string name of pattern in ../patterns dir (excluding extension)
+  function drawPattern(name) {
     startButton.setAttribute('disabled', 'true');
     patternSelector.setAttribute('disabled', 'true');
 
     const url = window.location.origin === 'https://lionel-rowe.github.io'
-    ? `https://lionel-rowe.github.io/GoL/patterns/${name}.json`
-    : `../patterns/${name}.json`; // gh pages doesn't play nicely with relative URLs
+    ? `https://lionel-rowe.github.io/GoL/patterns/${name}.rle`
+    : `../patterns/${name}.rle`; // gh pages doesn't play nicely with relative URLs
 
     fetch(url)
     .then(response => {
       if (response.ok) {
-        return response.json();
+        return response.text();
       } else {
         startButton.removeAttribute('disabled');
         patternSelector.removeAttribute('disabled');
         patternSelector.value = 'clear';
-        throw new Error('Network response not OK.');
+        alert('Network response not OK.');
       }
     })
-    .then(json => {
-      const pattern = createGameArray();
+    .then(text => {
 
-      json.aliveCells.forEach((cell) => {
-        pattern[cell[1] + json.offset[1]][cell[0] + json.offset[0]] = 1;
-      });
+      parseRle(text);
 
-      changeBoardStateTo(pattern);
       startButton.removeAttribute('disabled');
       patternSelector.removeAttribute('disabled');
+
+      startGame();
     });
   }
+
+  function parseRle(text) {
+    const lineBreak = /[\r\n]+/;
+    const lines = text.split(lineBreak).map(l => l.trim()).filter(l => !l.match(/^#[CO]/i));
+
+    const headerLine = lines.filter(l => l.match(/^[\s]*x/i))[0];
+    const nameLine = lines.filter(l => l.match(/#N/i))[0];
+
+    function match1(parsedString, matchRegex) {
+      return parsedString.match(matchRegex) && parsedString.match(matchRegex)[1];
+    }
+
+    const x = +match1(headerLine, /x\s*=\s*(\d+)/);
+    const y = +match1(headerLine, /y\s*=\s*(\d+)/);
+    const rule = match1(headerLine, /rule\s*=\s*(B\d+\s*\/\s*S\d+)/i).replace(/\s/g, '').toUpperCase();
+    if (nameLine) {
+      const name = match1(nameLine, /(?:#N\s*)(.+)/);
+    }
+    const pattern = match1(text, /(?:[\r\n]+)([bo$\d\r\n]+)!/i).replace(/\s+/g, '');
+    
+    if (!x || !y) {
+      alert('x and y must be specified');
+    } else if (x > gameWidth || y > gameHeight) {
+      alert(`bounding box must be within ${gameWidth} × ${gameHeight}`)
+    } else if (rule && rule !== 'B3/S23') {
+      alert(`Rule ${rule} not currently supported.`);
+    } else {
+      const patternArr = createGameArray();
+      const xOffset = Math.floor(gameWidthTotal / 2 - x / 2);
+      const yOffset = Math.floor(gameWidthTotal / 2 - y / 2);
+
+      const rows = pattern.replace(/(\d)+\$/g, (m, p1) => '$'.repeat(+p1)).split('$');
+
+      rows.forEach((row, rowIdx) => {
+        const ranges = row.match(/\d*[bo]/g);
+
+        let cellIdx = 0;
+        if (ranges) {
+          ranges.forEach(range => {
+            const cellState = range[range.length - 1];
+            const rangeLength = range.length > 1 ? +range.slice(0, -1) : 1;
+
+            for (let i = 0; i < rangeLength; i++) {
+              patternArr[rowIdx + yOffset][cellIdx + xOffset] = cellState === 'o' ? 1 : 0;
+              cellIdx++;
+            }
+
+          });
+        }
+      });
+
+      changeBoardStateTo(patternArr);
+    }
+  }
+
+
 
   function drawRandom(percentDensity) {
 
@@ -286,39 +364,11 @@ const app = (() => {
     changeBoardStateTo(randomBoard);
   }
 
-  /* UTILITY TO GET PATTERN JSON FROM BOARD STATE */
-
-  function getBoardStateObj() { // exclude anything outside that area
-    const boardStateObj = {};
-    const aliveCells = [];
-
-    for (let y = 1; y < gameHeightTotal; y++) {
-      for (let x = 1; x < gameWidthTotal; x++) {
-        if (gameArray[y][x] === 1) {
-          aliveCells.push([x, y]);
-        }
-      }
-    }
-
-    const left = aliveCells.map(el => el[0]).reduce((acc, cur) => Math.min(acc, cur));
-    const top = aliveCells.map(el => el[1]).reduce((acc, cur) => Math.min(acc, cur));
-
-    boardStateObj.aliveCells = aliveCells.map(el => [el[0] - left, el[1] - top]);
-    boardStateObj.offset = [left, top];
-
-    return boardStateObj;
-  }
-
   /* SET UP THE GAME TO START ON PAGE LOAD */
 
+  //document.querySelector('body').style.zoom = 1 / window.devicePixelRatio;
   drawBg();
   drawBoard();
   startGame();
-
-  return {
-    getBoardStateObj
-  };
-
-  //^ for creating new patterns
 
 })();
