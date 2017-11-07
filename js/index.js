@@ -13,6 +13,7 @@ const app = (() => {
   const gameTickCounter = document.querySelector('#game-tick-counter');
   const patternSelector = document.querySelector('#pattern-selector');
   const generationCounter = document.querySelector('#generation-counter');
+  const downloadLink = document.querySelector('#download-link');
 
   /* OVERALL GAME SETUP */
 
@@ -105,6 +106,7 @@ const app = (() => {
   startButton.addEventListener('click', toggleGamePlay);
   gameTickSlider.addEventListener('input', changeGameTick);
   patternSelector.addEventListener('input', drawBoard);
+  downloadLink.addEventListener('click', exportRle);
 
   function toggleGamePlay(e) {
     e.preventDefault();
@@ -130,7 +132,6 @@ const app = (() => {
       changeBoardStateTo(createGameArray());
     } else if (selected === 'random') {
       drawRandom(37.5);
-      startGame();
     } else if (selected === 'upload') {
       const fileUpload = document.createElement('input');
       fileUpload.setAttribute('type', 'file');
@@ -266,8 +267,8 @@ const app = (() => {
   }
 
   function drawPattern(name) {
-    startButton.setAttribute('disabled', 'true');
-    patternSelector.setAttribute('disabled', 'true');
+    // startButton.setAttribute('disabled', 'true');
+    // patternSelector.setAttribute('disabled', 'true');
 
     const url = window.location.origin === 'https://lionel-rowe.github.io'
     ? `https://lionel-rowe.github.io/GoL/patterns/${name}.rle`
@@ -278,8 +279,8 @@ const app = (() => {
       if (response.ok) {
         return response.text();
       } else {
-        startButton.removeAttribute('disabled');
-        patternSelector.removeAttribute('disabled');
+        // startButton.removeAttribute('disabled');
+        // patternSelector.removeAttribute('disabled');
         patternSelector.value = 'clear';
         alert('Network response not OK.');
       }
@@ -288,30 +289,29 @@ const app = (() => {
 
       parseRle(text);
 
-      startButton.removeAttribute('disabled');
-      patternSelector.removeAttribute('disabled');
+      // startButton.removeAttribute('disabled');
+      // patternSelector.removeAttribute('disabled');
 
-      startGame();
     });
   }
 
   function parseRle(text) {
     const lineBreak = /[\r\n]+/;
-    const lines = text.split(lineBreak).map(l => l.trim()).filter(l => !l.match(/^#[CO]/i));
+    const lines = text.split(lineBreak).map(l => l.trim()); //TODO: remove this var entirely
 
     const headerLine = lines.filter(l => l.match(/^[\s]*x/i))[0];
-    const nameLine = lines.filter(l => l.match(/#N/i))[0];
+    // const nameLine = lines.filter(l => l.match(/#N/i))[0];
 
     function match1(parsedString, matchRegex) {
-      return parsedString.match(matchRegex) && parsedString.match(matchRegex)[1];
+      return parsedString.match(matchRegex) && parsedString.match(matchRegex)[1] || '';
     }
 
     const x = +match1(headerLine, /x\s*=\s*(\d+)/);
     const y = +match1(headerLine, /y\s*=\s*(\d+)/);
     const rule = match1(headerLine, /rule\s*=\s*(B\d+\s*\/\s*S\d+)/i).replace(/\s/g, '').toUpperCase();
-    if (nameLine) {
-      const name = match1(nameLine, /(?:#N\s*)(.+)/);
-    }
+    // if (nameLine) {
+    //   const name = match1(nameLine, /(?:#N\s*)(.+)/);
+    // }
     const pattern = match1(text, /(?:[\r\n]+)([bo$\d\r\n]+)!/i).replace(/\s+/g, '');
     
     if (!x || !y) {
@@ -322,8 +322,8 @@ const app = (() => {
       alert(`Rule ${rule} not currently supported.`);
     } else {
       const patternArr = createGameArray();
-      const xOffset = Math.floor(gameWidthTotal / 2 - x / 2);
-      const yOffset = Math.floor(gameWidthTotal / 2 - y / 2);
+      const offsetX = Math.floor(gameWidthTotal / 2 - x / 2);
+      const offsetY = Math.floor(gameWidthTotal / 2 - y / 2);
 
       const rows = pattern.replace(/(\d)+\$/g, (m, p1) => '$'.repeat(+p1)).split('$');
 
@@ -337,7 +337,7 @@ const app = (() => {
             const rangeLength = range.length > 1 ? +range.slice(0, -1) : 1;
 
             for (let i = 0; i < rangeLength; i++) {
-              patternArr[rowIdx + yOffset][cellIdx + xOffset] = cellState === 'o' ? 1 : 0;
+              patternArr[rowIdx + offsetY][cellIdx + offsetX] = cellState === 'o' ? 1 : 0;
               cellIdx++;
             }
 
@@ -348,8 +348,6 @@ const app = (() => {
       changeBoardStateTo(patternArr);
     }
   }
-
-
 
   function drawRandom(percentDensity) {
 
@@ -362,6 +360,105 @@ const app = (() => {
     });
 
     changeBoardStateTo(randomBoard);
+  }
+
+  /* GET RLE FROM CURRENT BOARD STATE */
+
+  function exportRle() {
+
+    const data = {
+      startX: gameWidth,
+      startY: gameHeight,
+      endX: 0,
+      endY: 0,
+      x: 0,
+      y: 0,
+      aliveRows: []
+    };
+
+    for (let rowIdx = offScreenSpaceBefore; rowIdx < gameHeight + offScreenSpaceBefore; rowIdx++) {
+
+      const row = gameArray[rowIdx].slice(offScreenSpaceBefore, gameWidth + offScreenSpaceBefore);
+      const firstAliveIdx = row.indexOf(1);
+      const lastAliveIdx = row.lastIndexOf(1);
+      
+      if (firstAliveIdx > -1) {
+        data.aliveRows.push({rowIdx: rowIdx, cells: row});
+
+        if (firstAliveIdx < data.startX) {
+          data.startX = firstAliveIdx;
+        }
+        if (lastAliveIdx > data.endX) {
+          data.endX = lastAliveIdx;
+        }
+      }
+    }
+
+    data.startY = data.aliveRows[0].rowIdx;
+    data.endY = data.aliveRows[data.aliveRows.length - 1].rowIdx;
+
+    data.x = data.endX - data.startX + 1;
+    data.y = data.endY - data.startY + 1;
+
+    //convert cell data to a 1D array marking end of rows
+
+    let cells1d = [];
+    let prevIdx;
+
+    data.aliveRows.forEach((row, idx) => {
+      if (idx !== 0) {
+        for (let i = prevIdx; i < row.rowIdx; i++) {
+          cells1d.push('$');
+        }
+      }
+      cells1d = cells1d.concat(row.cells.slice(data.startX, row.cells.lastIndexOf(1) + 1));
+      prevIdx = row.rowIdx;
+    });
+
+    //convert data in 1d arr into RLE format
+
+    const rleSyntax = {0: 'b', 1: 'o', $: '$'};
+
+    let rlePatternData = '';
+    let prevVal = null;
+    let sameCount = 0;
+
+    cells1d.forEach((val, idx) => {
+      if (val !== prevVal && prevVal !== null) {
+        rlePatternData += (sameCount === 1 ? '' : sameCount) + rleSyntax[prevVal];
+        sameCount = 1;
+      } else {
+        sameCount++;
+      }
+
+      prevVal = val;
+
+      if (idx === cells1d.length - 1) {
+        rlePatternData += (sameCount === 1 ? '' : sameCount) + rleSyntax[prevVal];
+      }
+
+    });
+
+    rlePatternData += '!';
+
+    //split into lines of max 70 chars
+
+    rlePatternData = rlePatternData.match(/.{1,70}/g).join('\n');
+
+    //create the file string
+
+    const rleString = 
+`x = ${data.x}, y = ${data.y}, rule = B3/S23
+${rlePatternData}
+`;
+
+    const uri = `data:text/plain;charset=utf-8,${encodeURIComponent(rleString)}`;
+
+    const dummyLink = document.createElement('a');
+    dummyLink.setAttribute('download', 'GoL_pattern.rle');
+    dummyLink.setAttribute('href', uri);
+    dummyLink.click();
+
   }
 
   /* SET UP THE GAME TO START ON PAGE LOAD */

@@ -1,7 +1,3 @@
-h1 {
-  font-family: Georgia, serif;
-}
-
 body {
   font-family: Calibri, sans-serif;
   margin: 10px;
@@ -10,6 +6,10 @@ body {
 header {
   padding: 0 0 10px 0;
   width: 100%;
+}
+
+h1 {
+  font-family: Georgia, serif;
 }
 
 #controls {
