@@ -2,7 +2,13 @@ main {
   margin: 20px 0;
 }
 
-#controls, h1 {
+#controls {
+  position: -webkit-sticky;
+  position: sticky;
+  margin: 0 0 20px 0;
+}
+
+h1 {
   margin: 0 0 20px 0;
 }
 
@@ -40,5 +46,11 @@ main {
 
   #game-outer {
     margin-left: -30px;
+  }
+}
+
+@media screen and (min-width: 992px) {
+  #controls {
+    top: 20px;
   }
 }
