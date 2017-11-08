@@ -1,81 +1,44 @@
-body {
-  font-family: Calibri, sans-serif;
-  margin: 10px;
+main {
+  margin: 20px 0;
 }
 
-header {
-  padding: 0 0 10px 0;
-  width: 100%;
+#controls, h1 {
+  margin: 0 0 20px 0;
 }
 
-h1 {
-  font-family: Georgia, serif;
-}
-
-#controls {
-  width: 100%;
-  display: flex;
-  flex-wrap: wrap;
-  max-width: 800px;
-}
-
-#controls > * {
+.inline-block {
   display: inline-block;
-  height: 100%;
+  vertical-align: top;
 }
 
-#pattern-selector {
-  width: 180px;
-  text-overflow: '';
-}
-
-#game-tick-slider {
-  width: 120px;
+.control {
+  display: block;
+  width: 100%;
+  margin: 0 0 10px 0;
 }
 
 #game-tick-outer {
-  width: 210px;
-  text-align: center;
+  width: 100%;
+  display: block;
+}
+
+#game-tick-slider {
+  width: calc(100% - 4.5em);
 }
 
 #game-tick-counter-outer {
-  width: 3em;
   text-align: right;
-  margin: 0 5px;
+  width: 4em;
   display: inline-block;
-  vertical-align: top;
 }
 
-#start-button {
-  width: 5em;
-}
-
-#generation-counter-outer {
-  flex: auto;
-  text-align: right;
-}
-
-#generation-counter {
-  vertical-align: top;
-}
-
-#game {
-  width: 801px;
-  height: 801px;
-}
-
-@media screen and (max-width: 830px) {
-  #game {
-    margin: 0 -10px;
+@media screen and (max-width: 800px) {
+  .container-fluid {
+    padding-left: 0;
+    padding-right: 0;
   }
 
-  body {
-    width: 800px;
-  }
-
-  header {
-    position: sticky;
-    width: calc(100vw - 35px);
-    left: 10px;
+  #game-outer {
+    margin-left: -30px;
   }
 }
