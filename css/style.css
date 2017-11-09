@@ -3,18 +3,12 @@ main {
 }
 
 #controls {
-  position: -webkit-sticky;
-  position: sticky;
-  margin: 0 0 20px 0;
+  padding: 50px 15px 0 30px;
+  margin-top: -50px;
 }
 
 h1 {
   margin: 0 0 20px 0;
-}
-
-.inline-block {
-  display: inline-block;
-  vertical-align: top;
 }
 
 .control {
@@ -39,10 +33,6 @@ h1 {
 }
 
 @media screen and (max-width: 800px) {
-  .container-fluid {
-    padding-left: 0;
-    padding-right: 0;
-  }
 
   #game-outer {
     margin-left: -30px;
@@ -50,7 +40,23 @@ h1 {
 }
 
 @media screen and (min-width: 992px) {
+
   #controls {
-    top: 20px;
+    position: fixed;
+    background: #fff;
+    z-index: 1;
+    height: 110vh;
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+

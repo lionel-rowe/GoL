@@ -1,0 +1,6 @@
+#N freeCodeCamp
+#C https://www.freecodecamp.org/
+x = 25, y = 16, rule = B3/S23
+3b2o15b2o$2b2o7b2o8b2o$b2o9b2o8b2o$b2o9b2o8b2o$2o9b3obo7b2o$2o9b3ob2o6
+b2o$2o8b2ob4o6b2o$2o7b3o2b4o5b2o$2o7b3o2bob2o5b2o$2o7b2o5b2o5b2o$2o7b2
+o5bo6b2o$2o8bo4bo7b2o$b2o19b2o$b2o4b11o4b2o$2b2o3b11o3b2o$3b2o15b2o!

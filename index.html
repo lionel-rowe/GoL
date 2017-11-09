@@ -10,14 +10,14 @@
   </head>
   <body>
     <main class="container-fluid">
-      <div clas="row">
+      <div class="row">
         <form id="controls" class="col-12 col-lg-3 inline-block">
           <header>
             <h1>Conway’s Game of Life</h1>
           </header>
           <select id="pattern-selector" size="0" class="control">
             <option value="clear">Clear</option>
-            <option value="random" selected>Randomize</option>
+            <option value="random" selected>Soup</option>
             <option value="lightweight_spaceship">Lightweight spaceship</option>
             <option value="gosper_gun">Gosper Glider Gun</option>
             <option value="pentadecathlon">Pentadecathlon</option>
@@ -27,14 +27,14 @@
             <option value="copperhead">Copperhead</option>
             <option value="upload">Upload RLE file...</option>
           </select>
-          <label id="game-tick-outer" class="control"><input type="range" min="1" max="20" step="1" id="game-tick-slider" value="10"> <span id="game-tick-counter-outer"><span id="game-tick-counter">10</span> GPS</span></label>
+          <label id="game-tick-outer" class="control"><input type="range" min="1" max="20" step="1" id="game-tick-slider" value="10"> <span id="game-tick-counter-outer"><span id="game-tick-counter">10</span> <abbr title="generations per second">GPS</abbr></span></label>
           <button id="start-button" class="control">Start</button>
           <span id="generation-counter-outer" class="control">Generations: <span id="generation-counter">0</span>&#x200b;</span>
           <!-- `&#x200b;` is zero-width space (prevents clicks on canvas from highlighting gen counter in Chrome) -->
-          <a id="download-link" href="#">Download RLE file of visible board</a> | <a href="http://conwaylife.com/wiki/RLE">What's RLE?</a>
+          <a id="download-link" href="#">Export RLE file</a> | <a href="http://conwaylife.com/wiki/RLE">What’s RLE?</a>
         </form>
 
-        <div id="game-outer" class="col-12 col-lg-8 inline-block">
+        <div id="game-outer" class="col-12 col-lg-9 offset-lg-3">
           <canvas id="game" width="0" height="0"></canvas>
         </div>
 
