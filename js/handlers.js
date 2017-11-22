@@ -5,7 +5,7 @@ import createGameArray from './createGameArray.js';
 import {changeBoardStateTo} from './game_array.js';
 import {patterns} from './patterns.js';
 import {offScreenSpaceBefore} from './config.js';
-import {tilePlusBorder} from './dimensions.js';
+import {tilePlusBorder, dPR} from './dimensions.js';
 
 const patternSelector = document.querySelector('#pattern-selector');
 const generationCounter = document.querySelector('#generation-counter');
@@ -20,8 +20,8 @@ export function startMouseEvent(e) {
     const gameScaleY = gameRect.height / game.height;
 
     const coords =
-    [Math.floor((e.clientX - gameRect.left) / tilePlusBorder / gameScaleX + offScreenSpaceBefore),
-    Math.floor((e.clientY - gameRect.top) / tilePlusBorder / gameScaleY + offScreenSpaceBefore)];
+    [Math.floor((e.clientX * dPR - gameRect.left) / tilePlusBorder / gameScaleX + offScreenSpaceBefore),
+    Math.floor((e.clientY * dPR - gameRect.top) / tilePlusBorder / gameScaleY + offScreenSpaceBefore)];
 
     if (state.activeSquare === null || (coords[0] !== state.activeSquare[0] || coords[1] !== state.activeSquare[1])) {
       state.activeSquare = coords;

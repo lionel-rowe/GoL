@@ -4,8 +4,8 @@ import {state} from './state.js';
 import exportRle from './exportRle.js';
 import {drawBg} from './drawing.js';
 
-import {gameWidth, gameHeight, borderWidth} from './config.js';
-import {tilePlusBorder} from './dimensions.js';
+import {gameWidth, gameHeight} from './config.js';
+import {borderWidth, tilePlusBorder} from './dimensions.js';
 
 const app = (() => {
   'use strict';
@@ -23,9 +23,6 @@ const app = (() => {
   /* OVERALL GAME SETUP */
 
   state.gameTick = 1000 / gameTickSlider.value;
-
-  game.width = Math.floor(gameWidth * tilePlusBorder + borderWidth);
-  game.height = Math.floor(gameHeight * tilePlusBorder + borderWidth);
 
   /* EVENT LISTENERS */
 

@@ -1,6 +1,5 @@
-import {offScreenSpaceBefore, gameWidth, gameHeight, borderWidth, tileSize, deadColor, aliveColor, borderColor} from './config.js';
-import {tilePlusBorder, gameWidthTotal} from './dimensions.js';
-import {tilePlusDoubleBorder} from './dimensions.js';
+import {offScreenSpaceBefore, gameWidth, gameHeight, deadColor, aliveColor, borderColor} from './config.js';
+import {borderWidth, tileSize, tilePlusBorder, gameWidthTotal, tilePlusDoubleBorder} from './dimensions.js';
 import createGameArray from './createGameArray.js';
 import {changeBoardStateTo} from './game_array.js';
 import {state} from './state.js';
