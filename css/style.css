@@ -32,7 +32,7 @@ h1 {
   display: inline-block;
 }
 
-@media screen and (max-width: 800px) {
+@media screen and (max-width: 669px) {
 
   #game-outer {
     margin-left: -30px;
@@ -54,7 +54,7 @@ h1 {
   }
 }
 
-@media screen and (min-width: 992px) {
+@media screen and (min-width: 768px) {
 
   #controls {
     position: fixed;
