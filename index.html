@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Game of Life Simulation</title>
-    <link rel="stylesheet" href="lib/bootstrap/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Ubuntu:400,500" rel="stylesheet">
+
+    <link rel="stylesheet" href="lib/bootstrap_v4.2.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" href="favicon.png">
   </head>
@@ -15,7 +17,7 @@
           <header>
             <h1>Conway’s Game of Life</h1>
           </header>
-          <select id="pattern-selector" size="0" class="control">
+          <select id="pattern-selector" size="0" class="control form-control">
             <option value="clear">Clear</option>
             <option value="random" selected>Soup</option>
             <option value="lightweight_spaceship">Lightweight spaceship</option>
@@ -27,11 +29,13 @@
             <option value="copperhead">Copperhead</option>
             <option value="upload">Upload RLE file...</option>
           </select>
-          <label id="game-tick-outer" class="control"><input type="range" min="1" max="20" step="1" id="game-tick-slider" value="10"> <span id="game-tick-counter-outer"><span id="game-tick-counter">10</span> <abbr title="generations per second">GPS</abbr></span></label>
-          <button id="start-button" class="control">Start</button>
-          <span id="generation-counter-outer" class="control">Generations: <span id="generation-counter">0</span>&#x200b;</span>
+          <label id="game-tick-outer" class="control"><input type="range" class="form-control-range" min="1" max="20" step="1" id="game-tick-slider" value="10"> <span id="game-tick-counter-outer"><span id="game-tick-counter">10</span> <abbr title="generations per second">GPS</abbr></span></label>
+          <button id="start-button" class="control btn btn-primary">Start</button>
+          <div id="generation-counter-outer" class="control">Generations: <span id="generation-counter">0</span></div>
           <!-- `&#x200b;` is zero-width space (prevents clicks on canvas from highlighting gen counter in Chrome) -->
-          <a id="download-link" href="#">Export RLE file</a> | <a href="http://conwaylife.com/wiki/RLE" target="_blank">What’s RLE?</a>
+          <div class="control">
+            <a id="download-link" href="#">Export RLE file</a> | <a href="http://conwaylife.com/wiki/RLE" target="_blank">What’s RLE?</a>
+          </div>
         </form>
 
         <div id="game-outer" class="col-12 col-md-9 offset-md-3">
@@ -40,7 +44,7 @@
 
       </div>
 
-      <script src="./assets/bundle.js"></script>
     </main>
+    <script src="./assets/bundle.js"></script>
   </body>
 </html>

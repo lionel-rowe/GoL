@@ -1,9 +1,14 @@
+* {
+  font-family: 'Ubuntu', sans-serif;
+}
+
 main {
   margin: 20px 0;
 }
 
+
 #controls {
-  padding: 50px 15px 0 30px;
+  padding: 50px 15px 0 15px;
   margin-top: -50px;
 }
 
@@ -12,7 +17,6 @@ h1 {
 }
 
 .control {
-  display: block;
   width: 100%;
   margin: 0 0 10px 0;
 }
@@ -20,23 +24,49 @@ h1 {
 #game-tick-outer {
   width: 100%;
   display: block;
+  display: flex;
 }
 
 #game-tick-slider {
-  width: calc(100% - 4.5em);
+  /*width: calc(100% - 4.5em);*/
+  flex: 1 1 auto;
 }
 
 #game-tick-counter-outer {
+  flex: 0 0 4.2em;
   text-align: right;
-  width: 4em;
+  /*width: 4em;*/
   display: inline-block;
 }
 
-@media screen and (max-width: 669px) {
+/*#start-button {
+  width: 100%;
+}*/
+
+@media screen and (max-width: 999px) {
 
   #game-outer {
-    margin-left: -30px;
+    /*margin-left: -30px;*/
+    margin: 0 auto;
+    padding: 0;
+    /*width: unset !important;*/
   }
+
+  h1 {
+    font-size: 2em;
+    text-align: center;
+  }
+
+
+/*  #game-outer {
+    padding: 0;
+  }
+*/
+  #game {
+    width: 100%;
+  }
+
+
 
 }
 
@@ -54,12 +84,22 @@ h1 {
   }
 }
 
-@media screen and (min-width: 768px) {
+@media screen and (min-width: 1000px) {
 
   #controls {
     position: fixed;
     background: #fff;
     z-index: 1;
     height: 110vh;
+    padding: 50px 15px 0 30px;
+
   }
+}
+
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: url(../assets/img/caret_down.png) calc(100% - 3px) / 18px no-repeat #fff;
+  padding: 6px 23px 6px 10px !important;
 }
